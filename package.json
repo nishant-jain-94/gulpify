@@ -1,0 +1,56 @@
+{
+  "name": "crawler",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gulp": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/nishantkumarajain/Crawler.git"
+  },
+  "author": "Nishant Jain",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/nishantkumarajain/Crawler/issues"
+  },
+  "homepage": "https://gitlab.com/nishantkumarajain/Crawler#README",
+  "description": "",
+  "dependencies": {
+    "express": "^4.14.0",
+    "phantomjs": "^2.1.7"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.18.5",
+    "del": "^2.2.2",
+    "forever-monitor": "^1.7.1",
+    "glob": "^7.1.1",
+    "glob-all": "^3.1.0",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^3.1.1",
+    "gulp-csso": "^2.0.0",
+    "gulp-eslint": "^3.0.1",
+    "gulp-filter": "^4.0.0",
+    "gulp-if": "^2.0.2",
+    "gulp-inject": "^4.2.0",
+    "gulp-jscs": "^4.0.0",
+    "gulp-jshint": "^2.0.4",
+    "gulp-load-plugins": "^1.4.0",
+    "gulp-mocha": "^3.0.1",
+    "gulp-node-inspector": "^0.1.0",
+    "gulp-nodemon": "^2.2.1",
+    "gulp-plato": "^1.0.2",
+    "gulp-print": "^2.0.1",
+    "gulp-task-listing": "^1.0.1",
+    "gulp-util": "^3.0.8",
+    "jshint-stylish": "^2.2.1",
+    "mocha": "^3.2.0",
+    "node-inspector": "^0.12.8",
+    "node-notifier": "^4.6.1",
+    "nodemon": "^1.11.0",
+    "should": "^11.1.2",
+    "sinon": "^1.17.6",
+    "wiredep": "^4.0.0"
+  }
+}

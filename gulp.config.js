@@ -30,8 +30,8 @@ module.exports = function() {
             lib: 'lib.js'
         },
         bower: {
-            json: require('./bower.json'),
-            directory: './bower_components/'
+            // json: require('./bower.json'),
+            // directory: './bower_components/'
 
         },
 

@@ -1,21 +1,28 @@
-const argv = require('yargs').argv;
+const args = require('yargs').argv;
+const gulp = require('gulp');
 const glob = require('glob-all');
 const stylish = require('jshint-stylish');
-const port = process.env.port || config.defaultPort;
+const port = process.env.PORT;
 const plugins = require('gulp-load-plugins')();
-const nodemon = require('nodemon');
 const wiredep = require('wiredep').stream;
 const LessAutoPrefix = require('less-plugin-autoprefix');
-	
+const del = require('del');
+const bunyan = require('bunyan');
+const bformat = require('bunyan-format');
+const formatOut = bformat({ outputMode: 'short' });
+const log =  bunyan.createLogger({ name: 'gulpify', stream: formatOut });
 
-var client = './src/client/';
+// const nodemon = require('gulp-nodemon');
+
+var src = './src/' 
 var temp = './.tmp/';
-
+var client = src + 'client/';
+var server = src + 'server/'
 var config = {
-	 temp: tmp,
-	 js: './src/**/*.js',
-	 build: ',./build/',
-	 reports: './reports/',
+	 temp: temp,
+	 js: src + '**/*.js',
+	 build: './build/',
+	 report: './report/',
 	 client: {
 	 	'js': client + 'js/*.js',
 	 	'css': client + 'css/*.css',
@@ -23,19 +30,18 @@ var config = {
 	 },
 	 plato: {
 	 	files: './src/**/*.js',
-	 	outputDir: './reports',
+	 	outputDir: './report',
 	 	options: {
 	 		title: 'Code Analyzer using Plato'
 	 	}
 	 },
 	 nodemon: {
 	 	options: {
-	 		verbose: false,
+	 		script: server + 'app.js',	
 	 		env: {
-	 			'NODE_ENV': 'development',
+	 			'NODE_ENV': 'dev',
 	 			'PORT': 7000
 	 		}
-
 	 	}
 	 }
 };
@@ -51,24 +57,32 @@ gulp.task('default', ['help']);
  * Analyze and Lints all the JS files 	
  */
 gulp.task('lint', ['plato'], function() {
-	log('Analyze the code using JSHint');
+	log.info('Analyze the code using JSHint');
 
 	return gulp
 			.src(config.js)
-			.pipe($.jshint())
-			.pipe($.jshint.reporter(stylish));
+			.pipe(plugins.jshint())
+			.pipe(plugins.jshint.reporter(stylish));
 });
 
 /**
  * Analyze code using Plato
  */
 gulp.task('plato', function(done) {
-	log('Analyze the code using plato');
-	log('Browser for the reports in /reports/plato/index.html to see Plato results');
+	log.info('Analyze the code using plato');
+	log.info('Browser for the reports in /report/plato/index.html to see Plato results');
 
 	var plato = require('plato');
-	var files = glob.sync(config.plato.js)
-	plato.inspect(files, config.plato.outputDir, config.plato.options, done);
+	var files = glob.sync(config.plato.files);
+	plato.inspect(files, config.plato.outputDir, config.plato.options, platoCompleted);
+
+	function platoCompleted(report) {
+		var overview = plato.getOverviewReport(report);
+		if(args.verbose) {
+			log.info(overview.summary);
+		}
+		done();
+	};
 });
 
 /**
@@ -77,28 +91,13 @@ gulp.task('plato', function(done) {
  */
 
 gulp.task('serve', ['lint'], function() {
-	log('Serve the code using nodemon');
-	var debug = args.debug || args.debugBrk;
-	var debugMode = args.debug ? '--debug' : args.debugBrk ? '--debug-brk';
+	log.info('Serve the code using nodemon');
+	serve(true);
+	
+});
 
-	if(debug) {
-		log('Open the node inspector on localhost:8080/?port=5858');
-		config.nodemon.options.nodeArgs = [debugMode];
-		runNodeInspector(debugMode);
-	}
+gulp.task('serve-build', function() {
 
-	if(args.verbose) {
-		config.nodemon.options.verbose = true;
-	}
-
-	plugins.nodemon(config.nodemon.options)
-		.on('start', function() {
-			log('Server running on port '+ process.env.PORT);
-			startBrowserSync();
-		})
-		.on('restart', function() {
-			log('Restarting the server');
-		})
 });
 
 /**
@@ -133,14 +132,14 @@ gulp.task('inject', ['wiredep'], function() {
  */
 gulp.task('build', ['optimize'], function() {
 	
-	log('Build Everything');
+	log.info('Build Everything');
 
 	var msg = {
 		title: 'Gulp Build',
 		subtitle: 'Deployed to the build folder'
 	};
 
-	log(msg);
+	log.info(msg);
 	notify(msg);
 });
 
@@ -158,13 +157,13 @@ gulp.task('optimize', ['inject'], function() {
 			.pipe(gulp.dest('build'));
 });
 
-gulp.task('clean', function() {
+gulp.task('clean', function(done) {
 	var files = [config.build, config.temp, config.report];
 	clean(files, done);
 });
 
-gulp.task('clean-styles', function() {
-	var files = [config.tmp + '**/*.css', config.build + 'styles/**/*.css']
+gulp.task('clean-styles', function(done) {
+	var files = [config.temp + '**/*.css', config.build + 'styles/**/*.css']
 	clean(files, done);
 });
 
@@ -177,7 +176,7 @@ gulp.task('clean-fonts', function() {
 });
 
 gulp.task('clean-code', function() {
-	var files = [config.tmp, ]
+	var files = [config.temp]
 });
 
 gulp.task('styles', function() {
@@ -185,11 +184,34 @@ gulp.task('styles', function() {
 
 	return gulp
 			.src(config.client.less)
-			.pipe($.less())
-			.pipe($.autoprefixer({browsers: ['last 2 versions']}))
+			.pipe(plugins.less())
+			.pipe(plugins.autoprefixer({browsers: ['last 2 versions']}))
 			.pipe(gulp.dest(config.temp));
 
 });
+
+function serve(isDev, specRunner) {
+	var debug = args.debug || args.debugBrk;
+	var debugMode = args.debug ? '--debug' : args.debugBrk ? '--debug-brk' : '';
+	console.log(debugMode);
+	if(debug) {
+		log.info('Open the node inspector on localhost:8080/?port=5858');
+		config.nodemon.options.nodeArgs = [debugMode];
+		runNodeInspector(debugMode);
+	}
+
+	if(args.verbose) {
+		config.nodemon.options.verbose = true;
+	}
+	config.nodemon.options.env.NODE_ENV = isDev ? 'dev' : 'build';
+	plugins.nodemon(config.nodemon.options)
+		.on('start', function() {
+			log.info('Starting Node Server on PORT', port);
+		})
+		.on('restart', function(event) {
+            log.info('Restarting script because of '+ event.type + ' in ' + event.path);
+		});
+};
 
 /**
  * Run the nodeInspector
@@ -216,18 +238,18 @@ function runNodeInspector(debugMode) {
 /**
  * Logs a string, object or an array
  */
-function log(msg) {
+// function log(msg) {
 	
-	if(typeof(msg) === 'object') {
-		for(var item in msg) {
-			if(msg.hasOwnProperty(item)) {
-				plugins.util.log(plugins.util.colors.blue(msg[item]));
-			}
-		}
-	} else {
-		plugins.util.log(plugins.util.colors.blue(msg[item]));
-	}
-}
+// 	if(typeof(msg) === 'object') {
+// 		for(var item in msg) {
+// 			if(msg.hasOwnProperty(item)) {
+// 				plugins.util.log(plugins.util.colors.blue(msg[item]));
+// 			}
+// 		}
+// 	} else {
+// 		plugins.util.log(plugins.util.colors.blue(msg));
+// 	}
+// }
 
 /**
  * Displays system level notifications using node-notifier
@@ -241,6 +263,7 @@ function notify(options) {
 		contentImage: path.join(__dirname, 'gulp.png'),
 		icon: path.join(__dirname, 'gulp.png')
 	};
+	// assign all the properties in options object to the notifyOptions
 	_.assign(notifyOptions, options);
 	nodeNotifier.notify(notifyOptions);
 };
@@ -253,7 +276,8 @@ function notify(options) {
  * 
  */
 function clean(path, done) {
-	log('Deleting ', $.util.colors.blue(path));
+	log.info('Deleting the following paths');
+	log.info(path);
 
 	del(path, done);
 };

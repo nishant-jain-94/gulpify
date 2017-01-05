@@ -59,9 +59,6 @@ gulp.task('clean-styles', function(done) {
 gulp.task('styles', ['clean-styles'], function() {
     log('Compiling LESS to CSS');
 
-    return gulp
-            .src(config.less)
-            .
 });
 
 /**
@@ -362,7 +359,7 @@ function inject(src, label, order) {
  * @return {Stream} The ordered stream      
  */
 function orderSrc(src, order) {
-    return gulp
-            .src(src)
-            .pipe($.if(order, $.order(src));
+    // return gulp
+    //         .src(src)
+    //         .pipe($.if(order, $.order(src));
 }

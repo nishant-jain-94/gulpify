@@ -18,6 +18,11 @@
   "homepage": "https://gitlab.com/nishantkumarajain/Crawler#README",
   "description": "",
   "dependencies": {
+    "body-parser": "^1.15.2",
+    "bunyan": "^1.8.5",
+    "bunyan-format": "^0.2.1",
+    "compression": "^1.6.2",
+    "cors": "^2.8.1",
     "express": "^4.14.0",
     "phantomjs": "^2.1.7"
   },
@@ -36,6 +41,7 @@
     "gulp-inject": "^4.2.0",
     "gulp-jscs": "^4.0.0",
     "gulp-jshint": "^2.0.4",
+    "gulp-less": "^3.3.0",
     "gulp-load-plugins": "^1.4.0",
     "gulp-mocha": "^3.0.1",
     "gulp-node-inspector": "^0.1.0",
@@ -44,11 +50,12 @@
     "gulp-print": "^2.0.1",
     "gulp-task-listing": "^1.0.1",
     "gulp-util": "^3.0.8",
+    "gulp-watch": "^4.3.11",
     "jshint-stylish": "^2.2.1",
+    "less-plugin-autoprefix": "^1.5.1",
     "mocha": "^3.2.0",
     "node-inspector": "^0.12.8",
     "node-notifier": "^4.6.1",
-    "nodemon": "^1.11.0",
     "should": "^11.1.2",
     "sinon": "^1.17.6",
     "wiredep": "^4.0.0"
